@@ -26,8 +26,7 @@ from reportlab.pdfgen import canvas
 
 APP_DIR = Path(__file__).parent
 DATA_DIR = APP_DIR / "data"
-ASSETS_DIR = APP_DIR / "assets"
- = ASSETS_DIR / ".png"
+ASSETS_DIR = APP_DIR / "assets" = ASSETS_DIR / ".png"
 LOGO_WORDMARK_WHITE = ASSETS_DIR / "logo_wordmark_white.png"
 TZ_BR = ZoneInfo("America/Sao_Paulo")
 
