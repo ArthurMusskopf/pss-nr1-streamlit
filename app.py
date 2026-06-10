@@ -109,14 +109,502 @@ def asset_b64(path: Path) -> str:
 
 
 def css() -> None:
-    style_path = ASSETS_DIR / "styles.css"
-    if style_path.exists():
-        style = style_path.read_text(encoding="utf-8")
-    else:
-        style = """
-        .stApp { background: #A8A5A2; }
-        .pss-card { background: #EDEDEC; }
-        """
+    """CSS completo e isolado do app.
+
+    Importante: esta função NÃO lê assets/styles.css. O arquivo de CSS do repositório
+    tinha overrides e hotfixes conflitantes para o header. Centralizar o estilo aqui
+    deixa a renderização previsível no Streamlit Cloud.
+    """
+    style = """
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap');
+
+:root {
+    --graphite: #595C65;
+    --sand: #D2C3A0;
+    --mist: #EDEDEC;
+    --warm-gray: #A8A5A2;
+    --green: #2B3928;
+    --success: #2B5A35;
+    --danger: #8B3D2E;
+    --terracotta: #B47250;
+    --black: #000000;
+    --white: #FFFFFF;
+    --line: rgba(0, 0, 0, .12);
+    --shadow: 0 14px 34px rgba(0, 0, 0, .10);
+}
+
+* {
+    box-sizing: border-box;
+    font-family: Lato, Arial, sans-serif;
+}
+
+html,
+body,
+.stApp,
+[data-testid="stAppViewContainer"],
+[data-testid="stMain"] {
+    background: var(--white) !important;
+    color: var(--black) !important;
+}
+
+[data-testid="stHeader"],
+[data-testid="stDecoration"],
+[data-testid="stToolbar"],
+#MainMenu,
+footer {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+}
+
+.block-container,
+section.main > div {
+    max-width: 1180px !important;
+    margin: 0 auto !important;
+    padding: 0 28px 2.5rem 28px !important;
+}
+
+p,
+label,
+span,
+li,
+div,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    color: var(--black);
+}
+
+/* Header */
+.pss-hero {
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    margin-top: -18px;
+    background: var(--graphite);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, .16);
+}
+
+.pss-hero-inner {
+    width: min(1180px, 100%);
+    min-height: 220px;
+    margin: 0 auto;
+    padding: 44px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 52px;
+}
+
+.pss-brand-lockup {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 28px;
+}
+
+.pss-logo-symbol {
+    width: 62px;
+    min-width: 62px;
+    height: auto;
+    display: block;
+}
+
+.pss-logo-wordmark {
+    width: min(520px, 100%);
+    max-height: 132px;
+    object-fit: contain;
+    display: block;
+}
+
+.pss-wordmark-fallback {
+    color: var(--mist) !important;
+    font-size: clamp(2.1rem, 5vw, 4.2rem);
+    line-height: .95;
+    font-weight: 900;
+    letter-spacing: -.06em;
+    text-transform: uppercase;
+}
+
+.pss-hero-copy {
+    flex: 0 0 410px;
+    text-align: right;
+    min-width: 320px;
+}
+
+.pss-hero-title {
+    color: var(--sand) !important;
+    font-size: clamp(1.55rem, 2.4vw, 2.25rem);
+    line-height: 1.08;
+    font-weight: 900;
+    letter-spacing: -.025em;
+    margin: 0 0 12px 0;
+}
+
+.pss-hero-copy p {
+    color: var(--mist) !important;
+    font-size: 1rem;
+    line-height: 1.45;
+    font-weight: 700;
+    margin: 0;
+}
+
+/* Main layout */
+.pss-content {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 42px 0 0 0;
+}
+
+.pss-card,
+[data-testid="stForm"],
+[data-testid="stVerticalBlockBorderWrapper"] {
+    background: var(--white) !important;
+    background-color: var(--white) !important;
+    border: 1px solid var(--line) !important;
+    border-radius: 14px !important;
+    box-shadow: var(--shadow) !important;
+}
+
+.pss-card {
+    padding: 22px 24px;
+    margin: 0 0 22px 0;
+}
+
+[data-testid="stForm"] {
+    padding: 22px 24px !important;
+    margin-bottom: 22px !important;
+}
+
+[data-testid="stVerticalBlockBorderWrapper"] {
+    padding: 18px 20px !important;
+    margin: 0 0 18px 0 !important;
+}
+
+[data-testid="stVerticalBlockBorderWrapper"] > * {
+    background: transparent !important;
+}
+
+.pss-card-title {
+    margin: 0 0 16px 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(0, 0, 0, .14);
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    font-size: .76rem;
+    font-weight: 900;
+    color: var(--black) !important;
+}
+
+.pss-intro {
+    border-left: 6px solid var(--sand);
+    font-size: 1rem;
+    line-height: 1.72;
+}
+
+.pss-card p,
+.pss-card strong,
+.pss-card li {
+    color: var(--black) !important;
+}
+
+.pss-card strong {
+    font-weight: 900;
+}
+
+.small-note {
+    color: rgba(0, 0, 0, .62) !important;
+    font-size: .92rem;
+}
+
+/* Identification */
+.pss-company-card {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 20px;
+}
+
+.pss-company-item .label {
+    display: block;
+    color: rgba(0, 0, 0, .58) !important;
+    font-size: .74rem;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    font-weight: 900;
+}
+
+.pss-company-item .value {
+    display: block;
+    color: var(--black) !important;
+    font-size: .98rem;
+    font-weight: 700;
+}
+
+/* Streamlit controls */
+.stRadio > label,
+.stTextInput > label,
+.stTextArea > label,
+.stCheckbox > label {
+    color: var(--black) !important;
+    font-weight: 800 !important;
+}
+
+div[role="radiogroup"] label p,
+.stCheckbox label p {
+    color: var(--black) !important;
+}
+
+.stTextInput input,
+.stTextArea textarea {
+    background: var(--white) !important;
+    color: var(--black) !important;
+    border-radius: 8px !important;
+    border: 1px solid rgba(0, 0, 0, .24) !important;
+}
+
+.stTextInput input:focus,
+.stTextArea textarea:focus {
+    border-color: var(--success) !important;
+    box-shadow: 0 0 0 1px var(--success) !important;
+}
+
+div.stButton > button,
+div.stDownloadButton > button {
+    background: var(--success) !important;
+    border-color: var(--success) !important;
+    color: var(--mist) !important;
+    font-weight: 900 !important;
+    min-width: 240px;
+}
+
+/* Questions */
+.pss-section-header {
+    background: var(--graphite) !important;
+    border-radius: 12px 12px 0 0;
+    padding: 14px 20px;
+    margin-top: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.pss-section-header .name {
+    color: var(--mist) !important;
+    text-transform: uppercase;
+    letter-spacing: .17em;
+    font-size: .76rem;
+    font-weight: 900;
+}
+
+.pss-section-header .count {
+    color: var(--sand) !important;
+    font-size: .9rem;
+    white-space: nowrap;
+    font-weight: 900;
+}
+
+.pss-question-meta {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.pss-question-num {
+    background: var(--graphite) !important;
+    color: var(--mist) !important;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+}
+
+.pss-question-req {
+    color: var(--sand) !important;
+    background: var(--graphite) !important;
+    padding: 6px 10px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: .09em;
+    font-size: .68rem;
+    font-weight: 800;
+}
+
+.pss-question-text {
+    color: var(--black) !important;
+    font-size: 1.02rem;
+    line-height: 1.5;
+    margin: 0 0 10px 0;
+}
+
+/* Progress and result */
+.pss-progress,
+.pss-result {
+    background: var(--white) !important;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 0, 0, .10);
+}
+
+.pss-progress {
+    padding: 13px 16px;
+    margin: 18px 0;
+    display: flex;
+    justify-content: space-between;
+    font-weight: 800;
+}
+
+.pss-result {
+    border: 2px solid var(--green);
+    padding: 28px 24px 30px;
+    margin: 24px auto 18px;
+    text-align: center;
+    box-shadow: var(--shadow);
+}
+
+.pss-result-kicker {
+    color: var(--green) !important;
+    font-size: .78rem;
+    font-weight: 900;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+}
+
+.pss-result-points {
+    color: var(--green) !important;
+    font-family: Georgia, 'Times New Roman', serif !important;
+    font-size: clamp(3.2rem, 7vw, 5rem);
+    font-weight: 900;
+    line-height: 1;
+}
+
+.pss-result-max {
+    color: rgba(0, 0, 0, .56) !important;
+    font-weight: 800;
+}
+
+.pss-result-bar {
+    width: min(540px, 80%);
+    height: 12px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, .07);
+    margin: 22px auto 20px;
+    overflow: hidden;
+}
+
+.pss-result-bar-fill {
+    height: 100%;
+    width: var(--value);
+    background: var(--status-color);
+}
+
+.pss-status-pill {
+    display: inline-flex;
+    justify-content: center;
+    min-width: 108px;
+    padding: 9px 24px;
+    border-radius: 999px;
+    color: var(--status-color) !important;
+    border: 1px solid currentColor;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.pss-result-copy {
+    max-width: 650px;
+    margin: 18px auto 0;
+    line-height: 1.58;
+}
+
+.pss-cert-id {
+    color: rgba(0, 0, 0, .56) !important;
+    margin-top: 14px;
+    font-size: .9rem;
+    font-weight: 800;
+}
+
+/* Footer */
+.pss-footer-bleed {
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    margin-top: 42px;
+    background: var(--graphite);
+}
+
+.pss-footer-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 30px 24px;
+    text-align: center;
+}
+
+.pss-footer-inner * {
+    color: var(--mist) !important;
+}
+
+.pss-footer-inner .brand {
+    font-weight: 900;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.pss-footer-inner .muted {
+    color: var(--sand) !important;
+    margin-top: 6px;
+    font-size: .9rem;
+}
+
+/* Responsive */
+@media (max-width: 980px) {
+    .block-container,
+    section.main > div {
+        padding: 0 18px 2rem 18px !important;
+    }
+
+    .pss-hero-inner {
+        min-height: auto;
+        padding: 34px 24px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 26px;
+    }
+
+    .pss-brand-lockup {
+        width: 100%;
+        gap: 20px;
+    }
+
+    .pss-logo-symbol {
+        width: 50px;
+        min-width: 50px;
+    }
+
+    .pss-logo-wordmark {
+        width: min(430px, calc(100vw - 120px));
+        max-height: 106px;
+    }
+
+    .pss-hero-copy {
+        flex: 0 1 auto;
+        width: 100%;
+        min-width: 0;
+        text-align: left;
+    }
+
+    .pss-company-card {
+        grid-template-columns: 1fr;
+    }
+}
+"""
     st.markdown(f"<style>{style}</style>", unsafe_allow_html=True)
 
 
@@ -456,82 +944,33 @@ def render_header() -> None:
     wordmark = asset_b64(LOGO_WORDMARK_WHITE)
 
     symbol_html = (
-        f'<img src="data:image/png;base64,{symbol}" alt="Logo PS&S" '
-        f'style="width:64px;height:auto;display:block;flex:0 0 auto;">'
-        if symbol else ""
+        f'<img class="pss-logo-symbol" src="data:image/png;base64,{symbol}" alt="Logo PS&S">'
+        if symbol
+        else ""
     )
 
     wordmark_html = (
-        f'<img src="data:image/png;base64,{wordmark}" alt="Perroni Sanvicente & Schirmer" '
-        f'style="width:520px;max-width:100%;height:auto;display:block;object-fit:contain;">'
+        f'<img class="pss-logo-wordmark" src="data:image/png;base64,{wordmark}" alt="Perroni Sanvicente & Schirmer">'
         if wordmark
-        else '<div style="color:#EDEDEC;font-weight:900;letter-spacing:1px;">PERRONI SANVICENTE & SCHIRMER</div>'
+        else '<div class="pss-wordmark-fallback">PERRONI SANVICENTE<br>&amp; SCHIRMER</div>'
     )
 
     st.markdown(
-        textwrap.dedent(
-            f"""
-            <header style="
-                width:100vw;
-                margin-left:calc(50% - 50vw);
-                margin-right:calc(50% - 50vw);
-                margin-top:-18px;
-                background:#595C65;
-                box-shadow:0 10px 28px rgba(0,0,0,.16);
-            ">
-                <div style="
-                    max-width:1180px;
-                    min-height:176px;
-                    margin:0 auto;
-                    padding:34px 40px;
-                    display:grid;
-                    grid-template-columns:minmax(0, 1.05fr) minmax(360px, .95fr);
-                    align-items:center;
-                    column-gap:72px;
-                ">
-                    <div style="
-                        display:flex;
-                        align-items:center;
-                        gap:28px;
-                        min-width:0;
-                    ">
-                        {symbol_html}
-                        {wordmark_html}
-                    </div>
-
-                    <div style="
-                        text-align:right;
-                        min-width:360px;
-                    ">
-                        <div style="
-                            color:#D2C3A0;
-                            font-family:Lato, Arial, sans-serif;
-                            font-size:32px;
-                            line-height:1.08;
-                            font-weight:900;
-                            letter-spacing:-0.025em;
-                            margin-bottom:12px;
-                        ">
-                            Checklist de Adequação a NR-1
-                        </div>
-                        <p style="
-                            color:#EDEDEC;
-                            font-family:Lato, Arial, sans-serif;
-                            font-size:16px;
-                            line-height:1.45;
-                            font-weight:700;
-                            margin:0;
-                        ">
-                            Diagnóstico digital para mapeamento de conformidade em riscos psicossociais,
-                            GRO/PGR, prevenção, documentação e política interna.
-                        </p>
-                    </div>
-                </div>
-            </header>
-            """
-        ),
+        f"""<header class="pss-hero">
+<div class="pss-hero-inner">
+<div class="pss-brand-lockup">
+{symbol_html}
+{wordmark_html}
+</div>
+<div class="pss-hero-copy">
+<div class="pss-hero-title">Checklist de Adequação à NR-1</div>
+<p>Diagnóstico digital para mapeamento de conformidade em riscos psicossociais, GRO/PGR, prevenção, documentação e política interna.</p>
+</div>
+</div>
+</header>""",
         unsafe_allow_html=True,
     )
+
 
 def render_intro() -> None:
     st.markdown(
