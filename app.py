@@ -256,7 +256,7 @@ def make_certificate_pdf(nome: str, certificado_id: str, created_at_br: str) -> 
     c.setFillColor(graphite)
     c.rect(0, height - 3.4 * cm, width, 3.4 * cm, fill=1, stroke=0)
     if LOGO_SYMBOL_WHITE.exists():
-        c.drawImage(ImageReader(str(LOGO_SYMBOL_WHITE)), 1.45 * cm, height - 2.65 * cm, width=2.35 * cm, height=2.75 * cm, mask="auto")
+        c.drawImage(ImageReader(str(LOGO_SYMBOL_WHITE)), 1.45 * cm, height - 2.65 * cm, width=1.35 * cm, height=1.75 * cm, mask="auto")
     if LOGO_WORDMARK_WHITE.exists():
         c.drawImage(ImageReader(str(LOGO_WORDMARK_WHITE)), 3.05 * cm, height - 2.65 * cm, width=6.2 * cm, height=1.25 * cm, mask="auto")
 
