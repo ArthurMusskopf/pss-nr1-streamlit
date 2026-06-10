@@ -11,77 +11,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Patch app.py layout hooks
+      - name: Fix app indentation and cleanup
         run: |
-          cat > /tmp/patch_app.py <<'PY'
+          python - <<'PY'
           from pathlib import Path
-          import re
-          import textwrap
 
-          path = Path("app.py")
-          text = path.read_text(encoding="utf-8")
+          p = Path('app.py')
+          lines = p.read_text(encoding='utf-8').splitlines()
 
-          new_css = textwrap.dedent('''
-          def css() -> None:
-              style_path = ASSETS_DIR / "styles.css"
-              if style_path.exists():
-                  style = style_path.read_text(encoding="utf-8")
-              else:
-                  style = """
-                  .stApp { background: #A8A5A2; }
-                  .pss-card { background: #EDEDEC; }
-                  """
-              st.markdown(f"<style>{style}</style>", unsafe_allow_html=True)
-          ''').strip() + "\n"
+          start = None
+          end = None
+          for i, line in enumerate(lines):
+              if line.startswith('c0, c1, c2, c3 = st.columns'):
+                  start = i
+              if start is not None and line.startswith('def footer()'):
+                  end = i
+                  break
 
-          text, n = re.subn(
-              r"def css\(\) -> None:\n    st\.markdown\(.*?\n\n\ndef get_bq_client",
-              new_css + "\n\ndef get_bq_client",
-              text,
-              count=1,
-              flags=re.S,
-          )
-          if n != 1:
-              raise SystemExit("Could not replace css() function")
-
-          new_result_buttons = textwrap.dedent('''
-              c0, c1, c2, c3 = st.columns([1.0, 1.25, 1.8, 1.0])
-              with c1:
-                  st.download_button(
-                      "Download do certificado",
-                      data=payload["pdf_bytes"],
-                      file_name=f"certificado_{payload['certificado_id']}.pdf",
-                      mime="application/pdf",
-                      use_container_width=True,
-                  )
-              with c2:
-                  st.download_button(
-                      "Download dos resultados e Matriz de Ações",
-                      data=payload["excel_bytes"],
-                      file_name=payload["excel_name"],
-                      mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                      use_container_width=True,
-                  )
-          ''')
-          text, n = re.subn(
-              r"    d1, d2 = st\.columns\(2\)\n    with d1:\n        st\.download_button\(.*?\n\n\ndef footer",
-              new_result_buttons + "\n\ndef footer",
-              text,
-              count=1,
-              flags=re.S,
-          )
-          if n != 1:
-              raise SystemExit("Could not replace result buttons")
-
-          text = text.replace(
-              '        if st.button("Novo preenchimento", use_container_width=True):\n            reset_state()',
-              '        n0, n1, n2 = st.columns([1.6, 1.0, 1.6])\n        with n1:\n            if st.button("Novo preenchimento", use_container_width=True):\n                reset_state()'
-          )
-
-          path.write_text(text, encoding="utf-8")
+          if start is not None and end is not None:
+              for i in range(start, end):
+                  if lines[i].strip():
+                      lines[i] = '    ' + lines[i]
+              p.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+          else:
+              print('No top-level result button block found; nothing to indent.')
           PY
-          python /tmp/patch_app.py
 
       - name: Remove temporary write test if present
         run: |
@@ -91,11 +45,11 @@ jobs:
         run: |
           git config user.name "chatgpt-codex-connector"
           git config user.email "chatgpt-codex-connector@users.noreply.github.com"
-          git add app.py assets/styles.css
+          git add app.py
           git rm -f test_write.txt 2>/dev/null || true
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Centraliza estilos e polimenta UX final"
+            git commit -m "Corrige render result e limpa teste"
             git push
           fi
