@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import textwrap
 import base64
 import csv
 import json
@@ -468,68 +469,69 @@ def render_header() -> None:
     )
 
     st.markdown(
-        f"""
-        <header style="
-            width:100vw;
-            margin-left:calc(50% - 50vw);
-            margin-right:calc(50% - 50vw);
-            margin-top:-18px;
-            background:#595C65;
-            box-shadow:0 10px 28px rgba(0,0,0,.16);
-        ">
-            <div style="
-                max-width:1180px;
-                min-height:176px;
-                margin:0 auto;
-                padding:34px 40px;
-                display:grid;
-                grid-template-columns:minmax(0, 1.15fr) minmax(360px, .85fr);
-                align-items:center;
-                column-gap:64px;
+        textwrap.dedent(
+            f"""
+            <header style="
+                width:100vw;
+                margin-left:calc(50% - 50vw);
+                margin-right:calc(50% - 50vw);
+                margin-top:-18px;
+                background:#595C65;
+                box-shadow:0 10px 28px rgba(0,0,0,.16);
             ">
                 <div style="
-                    display:flex;
+                    max-width:1180px;
+                    min-height:176px;
+                    margin:0 auto;
+                    padding:34px 40px;
+                    display:grid;
+                    grid-template-columns:minmax(0, 1.05fr) minmax(360px, .95fr);
                     align-items:center;
-                    gap:28px;
-                    min-width:0;
-                ">
-                    {symbol_html}
-                    {wordmark_html}
-                </div>
-
-                <div style="
-                    text-align:right;
-                    min-width:360px;
+                    column-gap:72px;
                 ">
                     <div style="
-                        color:#D2C3A0;
-                        font-family:Lato, Arial, sans-serif;
-                        font-size:34px;
-                        line-height:1.08;
-                        font-weight:900;
-                        letter-spacing:-0.025em;
-                        margin-bottom:12px;
+                        display:flex;
+                        align-items:center;
+                        gap:28px;
+                        min-width:0;
                     ">
-                        Checklist de Adequação a NR-1
+                        {symbol_html}
+                        {wordmark_html}
                     </div>
-                    <p style="
-                        color:#EDEDEC;
-                        font-family:Lato, Arial, sans-serif;
-                        font-size:16px;
-                        line-height:1.45;
-                        font-weight:700;
-                        margin:0;
+
+                    <div style="
+                        text-align:right;
+                        min-width:360px;
                     ">
-                        Diagnóstico digital para mapeamento de conformidade em riscos psicossociais,
-                        GRO/PGR, prevenção, documentação e política interna.
-                    </p>
+                        <div style="
+                            color:#D2C3A0;
+                            font-family:Lato, Arial, sans-serif;
+                            font-size:32px;
+                            line-height:1.08;
+                            font-weight:900;
+                            letter-spacing:-0.025em;
+                            margin-bottom:12px;
+                        ">
+                            Checklist de Adequação a NR-1
+                        </div>
+                        <p style="
+                            color:#EDEDEC;
+                            font-family:Lato, Arial, sans-serif;
+                            font-size:16px;
+                            line-height:1.45;
+                            font-weight:700;
+                            margin:0;
+                        ">
+                            Diagnóstico digital para mapeamento de conformidade em riscos psicossociais,
+                            GRO/PGR, prevenção, documentação e política interna.
+                        </p>
+                    </div>
                 </div>
-            </div>
-        </header>
-        """,
+            </header>
+            """
+        ),
         unsafe_allow_html=True,
     )
-
 
 def render_intro() -> None:
     st.markdown(
