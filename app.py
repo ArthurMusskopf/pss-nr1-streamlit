@@ -27,7 +27,7 @@ from reportlab.pdfgen import canvas
 APP_DIR = Path(__file__).parent
 DATA_DIR = APP_DIR / "data"
 ASSETS_DIR = APP_DIR / "assets"
-LOGO_SYMBOL_WHITE = ASSETS_DIR / "logo_symbol_white.png"
+ = ASSETS_DIR / ".png"
 LOGO_WORDMARK_WHITE = ASSETS_DIR / "logo_wordmark_white.png"
 TZ_BR = ZoneInfo("America/Sao_Paulo")
 
@@ -254,7 +254,7 @@ def make_certificate_pdf(nome: str, certificado_id: str, created_at_br: str) -> 
     c.rect(0, 0, width, height, fill=1, stroke=0)
 
     c.setFillColor(graphite)
-    c.rect(0, height - 3.4 * cm, width, 3.4 * cm, fill=1, stroke=0)
+    c.rect(0, height - 4.4 * cm, width, 4.4 * cm, fill=1, stroke=0)
     if LOGO_SYMBOL_WHITE.exists():
         c.drawImage(ImageReader(str(LOGO_SYMBOL_WHITE)), 1.45 * cm, height - 2.65 * cm, width=2.35 * cm, height=2.75 * cm, mask="auto")
     if LOGO_WORDMARK_WHITE.exists():
