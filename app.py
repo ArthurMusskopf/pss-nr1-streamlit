@@ -111,26 +111,27 @@ def asset_b64(path: Path) -> str:
 def css() -> None:
     """CSS completo e isolado do app.
 
-    Importante: esta função NÃO lê assets/styles.css. O arquivo de CSS do repositório
-    tinha overrides e hotfixes conflitantes para o header. Centralizar o estilo aqui
-    deixa a renderização previsível no Streamlit Cloud.
+    Esta versão mantém o Streamlit simples, mas reduz a aparência de dashboard:
+    menos sombra, menos peso tipográfico e um header mais editorial/institucional.
     """
     style = """
-@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Lato:wght@400;500;700;900&display=swap');
 
 :root {
     --graphite: #595C65;
+    --graphite-deep: #4F535D;
     --sand: #D2C3A0;
     --mist: #EDEDEC;
-    --warm-gray: #A8A5A2;
+    --paper: #FAF9F6;
     --green: #2B3928;
     --success: #2B5A35;
     --danger: #8B3D2E;
     --terracotta: #B47250;
-    --black: #000000;
+    --black: #111111;
     --white: #FFFFFF;
-    --line: rgba(0, 0, 0, .12);
-    --shadow: 0 14px 34px rgba(0, 0, 0, .10);
+    --line: rgba(17, 17, 17, .10);
+    --line-strong: rgba(17, 17, 17, .18);
+    --shadow-soft: 0 18px 44px rgba(17, 17, 17, .055);
 }
 
 * {
@@ -143,7 +144,7 @@ body,
 .stApp,
 [data-testid="stAppViewContainer"],
 [data-testid="stMain"] {
-    background: var(--white) !important;
+    background: var(--paper) !important;
     color: var(--black) !important;
 }
 
@@ -159,7 +160,7 @@ footer {
 
 .block-container,
 section.main > div {
-    max-width: 1180px !important;
+    max-width: 1160px !important;
     margin: 0 auto !important;
     padding: 0 28px 2.5rem 28px !important;
 }
@@ -178,52 +179,55 @@ h6 {
     color: var(--black);
 }
 
-/* Header */
+/* Header institucional */
 .pss-hero {
     width: 100vw;
     margin-left: calc(50% - 50vw);
     margin-right: calc(50% - 50vw);
     margin-top: -18px;
-    background: var(--graphite);
-    box-shadow: 0 10px 28px rgba(0, 0, 0, .16);
+    background:
+        radial-gradient(circle at 18% 50%, rgba(210, 195, 160, .08), transparent 26%),
+        linear-gradient(135deg, #5E626C 0%, var(--graphite-deep) 100%);
+    border-bottom: 1px solid rgba(255, 255, 255, .10);
+    box-shadow: 0 18px 40px rgba(17, 17, 17, .10);
 }
 
 .pss-hero-inner {
-    width: min(1180px, 100%);
-    min-height: 220px;
+    width: min(1120px, 100%);
+    min-height: 190px;
     margin: 0 auto;
-    padding: 44px 40px;
-    display: flex;
+    padding: 38px 40px;
+    display: grid;
+    grid-template-columns: minmax(360px, 1fr) minmax(340px, 430px);
     align-items: center;
-    justify-content: space-between;
-    gap: 52px;
+    column-gap: clamp(42px, 7vw, 96px);
 }
 
 .pss-brand-lockup {
-    flex: 1 1 auto;
     min-width: 0;
     display: flex;
     align-items: center;
-    gap: 28px;
+    gap: 26px;
 }
 
 .pss-logo-symbol {
-    width: 62px;
-    min-width: 62px;
+    width: 44px;
+    min-width: 44px;
     height: auto;
     display: block;
+    opacity: .96;
 }
 
 .pss-logo-wordmark {
-    width: min(520px, 100%);
-    max-height: 132px;
+    width: min(420px, 100%);
+    max-height: 110px;
     object-fit: contain;
     display: block;
 }
 
 .pss-wordmark-fallback {
     color: var(--mist) !important;
-    font-size: clamp(2.1rem, 5vw, 4.2rem);
+    font-size: clamp(2rem, 4.6vw, 3.8rem);
     line-height: .95;
     font-weight: 900;
     letter-spacing: -.06em;
@@ -231,31 +235,44 @@ h6 {
 }
 
 .pss-hero-copy {
-    flex: 0 0 410px;
     text-align: right;
-    min-width: 320px;
+    min-width: 0;
+    border-left: 1px solid rgba(210, 195, 160, .28);
+    padding-left: clamp(26px, 4vw, 48px);
+}
+
+.pss-hero-kicker {
+    color: rgba(237, 237, 236, .78) !important;
+    display: block;
+    font-size: .72rem;
+    line-height: 1;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 12px;
 }
 
 .pss-hero-title {
     color: var(--sand) !important;
-    font-size: clamp(1.55rem, 2.4vw, 2.25rem);
-    line-height: 1.08;
-    font-weight: 900;
+    font-family: "Cormorant Garamond", Georgia, serif !important;
+    font-size: clamp(2.15rem, 3.3vw, 3rem);
+    line-height: .96;
+    font-weight: 600;
     letter-spacing: -.025em;
-    margin: 0 0 12px 0;
+    margin: 0 0 14px 0;
 }
 
 .pss-hero-copy p {
-    color: var(--mist) !important;
-    font-size: 1rem;
-    line-height: 1.45;
-    font-weight: 700;
+    color: rgba(255, 255, 255, .86) !important;
+    font-size: .94rem;
+    line-height: 1.55;
+    font-weight: 400;
     margin: 0;
 }
 
 /* Main layout */
 .pss-content {
-    max-width: 1120px;
+    max-width: 1040px;
     margin: 0 auto;
     padding: 42px 0 0 0;
 }
@@ -263,20 +280,20 @@ h6 {
 .pss-card,
 [data-testid="stForm"],
 [data-testid="stVerticalBlockBorderWrapper"] {
-    background: var(--white) !important;
-    background-color: var(--white) !important;
+    background: rgba(255, 255, 255, .96) !important;
+    background-color: rgba(255, 255, 255, .96) !important;
     border: 1px solid var(--line) !important;
-    border-radius: 14px !important;
-    box-shadow: var(--shadow) !important;
+    border-radius: 10px !important;
+    box-shadow: var(--shadow-soft) !important;
 }
 
 .pss-card {
-    padding: 22px 24px;
+    padding: 24px 26px;
     margin: 0 0 22px 0;
 }
 
 [data-testid="stForm"] {
-    padding: 22px 24px !important;
+    padding: 24px 26px !important;
     margin-bottom: 22px !important;
 }
 
@@ -292,18 +309,86 @@ h6 {
 .pss-card-title {
     margin: 0 0 16px 0;
     padding-bottom: 10px;
-    border-bottom: 1px solid rgba(0, 0, 0, .14);
-    letter-spacing: .16em;
+    border-bottom: 1px solid var(--line);
+    letter-spacing: .18em;
     text-transform: uppercase;
-    font-size: .76rem;
-    font-weight: 900;
-    color: var(--black) !important;
+    font-size: .72rem;
+    font-weight: 700;
+    color: rgba(17, 17, 17, .70) !important;
 }
 
+/* Intro */
 .pss-intro {
-    border-left: 6px solid var(--sand);
+    position: relative;
+    border-left: 0;
+    border-top: 3px solid var(--sand);
     font-size: 1rem;
-    line-height: 1.72;
+    line-height: 1.7;
+}
+
+.pss-eyebrow {
+    color: rgba(17, 17, 17, .58) !important;
+    font-size: .72rem;
+    letter-spacing: .20em;
+    text-transform: uppercase;
+    font-weight: 800;
+    margin-bottom: 10px;
+}
+
+.pss-intro-lead {
+    color: var(--black) !important;
+    font-family: "Cormorant Garamond", Georgia, serif !important;
+    font-size: clamp(1.28rem, 2vw, 1.55rem);
+    line-height: 1.28;
+    font-weight: 600;
+    margin: 0 0 18px 0;
+}
+
+.pss-intro-rule {
+    height: 1px;
+    background: var(--line);
+    margin: 18px 0;
+}
+
+.pss-intro-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.pss-intro-item {
+    padding-right: 18px;
+    border-right: 1px solid var(--line);
+}
+
+.pss-intro-item:last-child {
+    border-right: 0;
+    padding-right: 0;
+}
+
+.pss-intro-item span {
+    display: block;
+    color: var(--sand) !important;
+    font-family: "Cormorant Garamond", Georgia, serif !important;
+    font-size: 1.45rem;
+    line-height: 1;
+    font-weight: 700;
+    margin-bottom: 7px;
+}
+
+.pss-intro-item strong {
+    display: block;
+    color: var(--black) !important;
+    font-size: .92rem;
+    font-weight: 800;
+    margin-bottom: 4px;
+}
+
+.pss-intro-item p {
+    color: rgba(17, 17, 17, .68) !important;
+    font-size: .9rem;
+    line-height: 1.5;
+    margin: 0;
 }
 
 .pss-card p,
@@ -313,7 +398,7 @@ h6 {
 }
 
 .pss-card strong {
-    font-weight: 900;
+    font-weight: 800;
 }
 
 .small-note {
@@ -368,23 +453,24 @@ div[role="radiogroup"] label p,
 
 .stTextInput input:focus,
 .stTextArea textarea:focus {
-    border-color: var(--success) !important;
-    box-shadow: 0 0 0 1px var(--success) !important;
+    border-color: var(--green) !important;
+    box-shadow: 0 0 0 1px var(--green) !important;
 }
 
 div.stButton > button,
 div.stDownloadButton > button {
-    background: var(--success) !important;
-    border-color: var(--success) !important;
+    background: var(--green) !important;
+    border-color: var(--green) !important;
     color: var(--mist) !important;
-    font-weight: 900 !important;
+    font-weight: 800 !important;
     min-width: 240px;
+    border-radius: 6px !important;
 }
 
 /* Questions */
 .pss-section-header {
     background: var(--graphite) !important;
-    border-radius: 12px 12px 0 0;
+    border-radius: 10px 10px 0 0;
     padding: 14px 20px;
     margin-top: 24px;
     display: flex;
@@ -398,14 +484,14 @@ div.stDownloadButton > button {
     text-transform: uppercase;
     letter-spacing: .17em;
     font-size: .76rem;
-    font-weight: 900;
+    font-weight: 800;
 }
 
 .pss-section-header .count {
     color: var(--sand) !important;
-    font-size: .9rem;
+    font-size: .86rem;
     white-space: nowrap;
-    font-weight: 900;
+    font-weight: 800;
 }
 
 .pss-question-meta {
@@ -449,7 +535,7 @@ div.stDownloadButton > button {
 .pss-progress,
 .pss-result {
     background: var(--white) !important;
-    border-radius: 12px;
+    border-radius: 10px;
     border: 1px solid rgba(0, 0, 0, .10);
 }
 
@@ -466,7 +552,7 @@ div.stDownloadButton > button {
     padding: 28px 24px 30px;
     margin: 24px auto 18px;
     text-align: center;
-    box-shadow: var(--shadow);
+    box-shadow: var(--shadow-soft);
 }
 
 .pss-result-kicker {
@@ -573,35 +659,48 @@ div.stDownloadButton > button {
     .pss-hero-inner {
         min-height: auto;
         padding: 34px 24px;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 26px;
+        grid-template-columns: 1fr;
+        gap: 28px;
     }
 
     .pss-brand-lockup {
         width: 100%;
-        gap: 20px;
+        gap: 18px;
     }
 
     .pss-logo-symbol {
-        width: 50px;
-        min-width: 50px;
+        width: 38px;
+        min-width: 38px;
     }
 
     .pss-logo-wordmark {
-        width: min(430px, calc(100vw - 120px));
-        max-height: 106px;
+        width: min(360px, calc(100vw - 105px));
+        max-height: 96px;
     }
 
     .pss-hero-copy {
-        flex: 0 1 auto;
-        width: 100%;
-        min-width: 0;
         text-align: left;
+        border-left: 0;
+        border-top: 1px solid rgba(210, 195, 160, .28);
+        padding-left: 0;
+        padding-top: 22px;
     }
 
+    .pss-intro-grid,
     .pss-company-card {
         grid-template-columns: 1fr;
+    }
+
+    .pss-intro-item {
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+        padding-right: 0;
+        padding-bottom: 14px;
+    }
+
+    .pss-intro-item:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
     }
 }
 """
@@ -963,8 +1062,9 @@ def render_header() -> None:
 {wordmark_html}
 </div>
 <div class="pss-hero-copy">
-<div class="pss-hero-title">Checklist de Adequação à NR-1</div>
-<p>Diagnóstico digital para mapeamento de conformidade em riscos psicossociais, GRO/PGR, prevenção, documentação e política interna.</p>
+<span class="pss-hero-kicker">Workshop | Riscos Psicossociais</span>
+<div class="pss-hero-title">Diagnóstico de Adequação à NR-1</div>
+<p>Mapeamento preliminar de conformidade, documentação e governança para gestão de riscos psicossociais.</p>
 </div>
 </div>
 </header>""",
@@ -976,9 +1076,26 @@ def render_intro() -> None:
     st.markdown(
         """
         <div class="pss-card pss-intro">
-            <p><strong>Como preencher:</strong> para cada requisito, selecione uma das quatro opções — <strong>Sim - Conforme</strong> (5 pontos), <strong>Em andamento</strong> (2,5 pontos), <strong>Não - Inconformidade</strong> (0 pontos) ou <strong>N/A</strong> (não se aplica). Ao final, clique em <strong>Calcular e Enviar Resultados</strong>.</p>
-            <p style="margin-bottom:0"><strong>Responda, gere seu score, Matriz de Ações e emita o seu certificado de participação no Workshop!</strong></p>
-            <p class="small-note" style="margin-bottom:0;margin-top:10px">A observação é opcional, mas recomendamos justificar quando a resposta for N/A.</p>
+            <div class="pss-eyebrow">Orientações de preenchimento</div>
+            <p class="pss-intro-lead">Responda com base nas evidências atualmente disponíveis pela empresa.</p>
+            <div class="pss-intro-rule"></div>
+            <div class="pss-intro-grid">
+                <div class="pss-intro-item">
+                    <span>01</span>
+                    <strong>Classifique cada requisito</strong>
+                    <p>Utilize as opções de conformidade, andamento, inconformidade ou não aplicabilidade.</p>
+                </div>
+                <div class="pss-intro-item">
+                    <span>02</span>
+                    <strong>Registre observações relevantes</strong>
+                    <p>O campo é opcional, mas ajuda a contextualizar lacunas, evidências e exceções.</p>
+                </div>
+                <div class="pss-intro-item">
+                    <span>03</span>
+                    <strong>Gere os documentos finais</strong>
+                    <p>Ao concluir, o sistema emitirá o score, a matriz de ações e o certificado de participação.</p>
+                </div>
+            </div>
         </div>
         """,
         unsafe_allow_html=True,
