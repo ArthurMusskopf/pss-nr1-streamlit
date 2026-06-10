@@ -453,35 +453,79 @@ def make_excel(participant: dict[str, str], answers: list[dict[str, Any]], summa
 def render_header() -> None:
     symbol = asset_b64(LOGO_SYMBOL_WHITE)
     wordmark = asset_b64(LOGO_WORDMARK_WHITE)
-    symbol_html = f'<img class="pss-logo-symbol" src="data:image/png;base64,{symbol}" alt="Logo PS&S">' if symbol else ""
-    wordmark_html = f'<img class="pss-logo-wordmark" src="data:image/png;base64,{wordmark}" alt="Perroni Sanvicente & Schirmer">' if wordmark else '<div style="color:#EDEDEC;font-weight:900;letter-spacing:1px;">PERRONI SANVICENTE & SCHIRMER</div>'
+
+    symbol_html = (
+        f'<img src="data:image/png;base64,{symbol}" alt="Logo PS&S" '
+        f'style="width:64px;height:auto;display:block;flex:0 0 auto;">'
+        if symbol else ""
+    )
+
+    wordmark_html = (
+        f'<img src="data:image/png;base64,{wordmark}" alt="Perroni Sanvicente & Schirmer" '
+        f'style="width:520px;max-width:100%;height:auto;display:block;object-fit:contain;">'
+        if wordmark
+        else '<div style="color:#EDEDEC;font-weight:900;letter-spacing:1px;">PERRONI SANVICENTE & SCHIRMER</div>'
+    )
+
     st.markdown(
         f"""
-        <header class="pss-header-bleed">
-            <div class="pss-header-inner">
-                <div class="pss-brand-lockup">
+        <header style="
+            width:100vw;
+            margin-left:calc(50% - 50vw);
+            margin-right:calc(50% - 50vw);
+            margin-top:-18px;
+            background:#595C65;
+            box-shadow:0 10px 28px rgba(0,0,0,.16);
+        ">
+            <div style="
+                max-width:1180px;
+                min-height:176px;
+                margin:0 auto;
+                padding:34px 40px;
+                display:grid;
+                grid-template-columns:minmax(0, 1.15fr) minmax(360px, .85fr);
+                align-items:center;
+                column-gap:64px;
+            ">
+                <div style="
+                    display:flex;
+                    align-items:center;
+                    gap:28px;
+                    min-width:0;
+                ">
                     {symbol_html}
                     {wordmark_html}
                 </div>
-                <div class="pss-hero-copy">
-                    <div class="pss-title">Checklist de Adequação a NR-1</div>
-                    <p>Diagnóstico digital para mapeamento de conformidade em riscos psicossociais, GRO/PGR, prevenção, documentação e política interna.</p>
+
+                <div style="
+                    text-align:right;
+                    min-width:360px;
+                ">
+                    <div style="
+                        color:#D2C3A0;
+                        font-family:Lato, Arial, sans-serif;
+                        font-size:34px;
+                        line-height:1.08;
+                        font-weight:900;
+                        letter-spacing:-0.025em;
+                        margin-bottom:12px;
+                    ">
+                        Checklist de Adequação a NR-1
+                    </div>
+                    <p style="
+                        color:#EDEDEC;
+                        font-family:Lato, Arial, sans-serif;
+                        font-size:16px;
+                        line-height:1.45;
+                        font-weight:700;
+                        margin:0;
+                    ">
+                        Diagnóstico digital para mapeamento de conformidade em riscos psicossociais,
+                        GRO/PGR, prevenção, documentação e política interna.
+                    </p>
                 </div>
             </div>
         </header>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
-def render_intro() -> None:
-    st.markdown(
-        """
-        <div class="pss-card pss-intro">
-            <p><strong>Como preencher:</strong> para cada requisito, selecione uma das quatro opções — <strong>Sim - Conforme</strong> (5 pontos), <strong>Em andamento</strong> (2,5 pontos), <strong>Não - Inconformidade</strong> (0 pontos) ou <strong>N/A</strong> (não se aplica). Ao final, clique em <strong>Calcular e Enviar Resultados</strong>.</p>
-            <p style="margin-bottom:0"><strong>Responda, gere seu score, Matriz de Ações e emita o seu certificado de participação no Workshop!</strong></p>
-            <p class="small-note" style="margin-bottom:0;margin-top:10px">A observação é opcional, mas recomendamos justificar quando a resposta for N/A.</p>
-        </div>
         """,
         unsafe_allow_html=True,
     )
