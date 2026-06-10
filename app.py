@@ -4,15 +4,14 @@ import base64
 import csv
 import json
 import uuid
-from html import escape
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from html import escape
 from io import BytesIO
 from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
 
-import pandas as pd
 import streamlit as st
 from google.cloud import bigquery
 from google.oauth2 import service_account
@@ -30,13 +29,10 @@ DATA_DIR = APP_DIR / "data"
 ASSETS_DIR = APP_DIR / "assets"
 LOGO_SYMBOL_WHITE = ASSETS_DIR / "logo_symbol_white.png"
 LOGO_WORDMARK_WHITE = ASSETS_DIR / "logo_wordmark_white.png"
-LOGO_SYMBOL_GRAPHITE = ASSETS_DIR / "logo_symbol_graphite.png"
-LOGO_WORDMARK_GRAPHITE = ASSETS_DIR / "logo_wordmark_graphite.png"
 TZ_BR = ZoneInfo("America/Sao_Paulo")
 
 BRAND = {
     "graphite": "#595C65",
-    "graphite_old": "#585A62",
     "sand": "#D2C3A0",
     "mist": "#EDEDEC",
     "warm_gray": "#A8A5A2",
@@ -84,6 +80,7 @@ class Diagnosis:
     maximo: float
     percentual: float
     status: str
+    status_label: str
     descricao: str
     pacote: str
     cor: str
@@ -114,255 +111,483 @@ def css() -> None:
     st.markdown(
         f"""
         <style>
-        :root {{
-            --pss-graphite: {BRAND['graphite']};
-            --pss-sand: {BRAND['sand']};
-            --pss-mist: {BRAND['mist']};
-            --pss-warm: {BRAND['warm_gray']};
-            --pss-green: {BRAND['green']};
-            --pss-black: {BRAND['black']};
-        }}
-        .stApp {{ background: var(--pss-warm); color: var(--pss-black); }}
-        [data-testid="stHeader"] {{ background: rgba(168,165,162,.82); }}
-        [data-testid="stToolbar"] {{ display: none; }}
-        #MainMenu {{ visibility: hidden; }}
-        footer {{ visibility: hidden; }}
-        section.main > div {{ max-width: 1060px; padding-top: 1.6rem; padding-bottom: 2.2rem; }}
+        @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Lexend+Peta:wght@400;700;800&display=swap');
 
-        h1, h2, h3, h4, h5, h6, p, label, span, li, div {{ color: var(--pss-black); }}
-        .pss-header, .pss-footer {{
-            background: var(--pss-graphite);
-            border-radius: 0;
-            padding: 28px 32px;
-            box-shadow: 0 14px 32px rgba(0,0,0,.15);
+        :root {{
+            --pss-graphite: {BRAND["graphite"]};
+            --pss-sand: {BRAND["sand"]};
+            --pss-mist: {BRAND["mist"]};
+            --pss-warm: {BRAND["warm_gray"]};
+            --pss-green: {BRAND["green"]};
+            --pss-black: {BRAND["black"]};
+            --pss-terracotta: {BRAND["terracotta"]};
+            --pss-danger: {BRAND["danger"]};
         }}
-        .pss-header {{
+
+        * {{
+            font-family: "Lato", Arial, sans-serif;
+        }}
+
+        .stApp {{
+            background: var(--pss-warm);
+            color: var(--pss-black);
+        }}
+
+        [data-testid="stHeader"] {{
+            background: transparent;
+        }}
+
+        [data-testid="stToolbar"],
+        #MainMenu,
+        footer {{
+            display: none !important;
+            visibility: hidden !important;
+        }}
+
+        section.main > div {{
+            max-width: none;
+            padding: 0 0 2.4rem 0;
+        }}
+
+        h1, h2, h3, h4, h5, h6,
+        .pss-title,
+        .pss-card-title,
+        .pss-section-header .name,
+        .pss-result-kicker,
+        .pss-status-pill {{
+            font-family: "Lexend Peta", Arial, sans-serif !important;
+        }}
+
+        p, label, span, li, div {{
+            color: var(--pss-black);
+        }}
+
+        .pss-header-bleed {{
+            width: 100vw;
+            margin-left: calc(50% - 50vw);
+            margin-right: calc(50% - 50vw);
+            background: var(--pss-graphite);
+            box-shadow: 0 18px 42px rgba(0,0,0,.18);
+        }}
+
+        .pss-header-inner {{
+            max-width: 1180px;
+            min-height: 168px;
+            margin: 0 auto;
+            padding: 42px 32px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 28px;
-            margin-bottom: 26px;
+            gap: 34px;
         }}
+
         .pss-brand-lockup {{
             display: flex;
             align-items: center;
-            gap: 18px;
-            min-width: 360px;
+            gap: 20px;
+            min-width: 420px;
         }}
-        .pss-logo-symbol {{ height: 58px; width: auto; display: block; }}
-        .pss-logo-wordmark {{ height: 46px; width: auto; max-width: 330px; display: block; object-fit: contain; }}
-        .pss-hero-copy {{ text-align: right; max-width: 610px; }}
-        .pss-hero-copy h1 {{
-            margin: 0 0 8px 0;
-            color: var(--pss-sand);
-            font-size: clamp(1.45rem, 3vw, 2.2rem);
-            line-height: 1.05;
+
+        .pss-logo-symbol {{
+            height: 52px;
+            width: auto;
+            display: block;
+        }}
+
+        .pss-logo-wordmark {{
+            height: 64px;
+            width: auto;
+            max-width: 430px;
+            display: block;
+            object-fit: contain;
+        }}
+
+        .pss-hero-copy {{
+            text-align: right;
+            max-width: 650px;
+        }}
+
+        .pss-hero-copy .pss-title {{
+            margin: 0 0 14px 0;
+            color: var(--pss-sand) !important;
+            font-size: clamp(1.35rem, 2.8vw, 2.35rem);
+            line-height: 1.18;
             font-weight: 800;
-            letter-spacing: -.03em;
+            letter-spacing: -.05em;
         }}
+
         .pss-hero-copy p {{
             margin: 0;
-            color: var(--pss-mist);
-            font-size: .96rem;
+            color: var(--pss-mist) !important;
+            font-size: 1.02rem;
             line-height: 1.45;
-            font-family: Arial, sans-serif;
+        }}
+
+        .pss-content {{
+            max-width: 1060px;
+            margin: 0 auto;
+            padding: 32px 24px 0 24px;
         }}
 
         .pss-card {{
-            background: var(--pss-mist);
-            border: 1px solid rgba(0,0,0,.10);
+            background: var(--pss-mist) !important;
+            border: 1px solid rgba(0,0,0,.12);
             border-radius: 12px;
             padding: 22px 24px;
             margin: 0 0 22px 0;
-            box-shadow: 0 12px 28px rgba(0,0,0,.08);
+            box-shadow: 0 14px 32px rgba(0,0,0,.10);
         }}
-        .pss-card p, .pss-card strong, .pss-card li {{ color: var(--pss-black); }}
-        .pss-card strong {{ font-weight: 800; }}
+
+        .pss-card p,
+        .pss-card strong,
+        .pss-card li {{
+            color: var(--pss-black) !important;
+        }}
+
+        .pss-card strong {{
+            font-weight: 900;
+        }}
+
         .pss-card-title {{
             margin: 0 0 16px 0;
             padding-bottom: 10px;
             border-bottom: 1px solid rgba(0,0,0,.14);
-            font-family: Arial, sans-serif;
-            letter-spacing: 2px;
+            letter-spacing: .16em;
             text-transform: uppercase;
-            font-size: .82rem;
+            font-size: .76rem;
             font-weight: 800;
-            color: var(--pss-black);
+            color: var(--pss-black) !important;
         }}
+
         .pss-intro {{
             border-left: 6px solid var(--pss-sand);
             font-size: 1rem;
             line-height: 1.72;
         }}
-        .pss-unlocked {{
-            background: rgba(43,57,40,.10);
-            border: 1px solid rgba(43,57,40,.18);
-            color: var(--pss-black);
-            border-radius: 12px;
-            padding: 12px 16px;
-            margin-bottom: 18px;
-            font-family: Arial, sans-serif;
-            font-size: .92rem;
+
+        .pss-company-card {{
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px 20px;
         }}
+
+        .pss-company-item .label {{
+            display: block;
+            color: rgba(0,0,0,.58);
+            font-size: .74rem;
+            text-transform: uppercase;
+            letter-spacing: .12em;
+            font-weight: 900;
+            margin-bottom: 3px;
+        }}
+
+        .pss-company-item .value {{
+            display: block;
+            color: var(--pss-black);
+            font-size: .98rem;
+            font-weight: 700;
+        }}
+
+        div[data-testid="stVerticalBlockBorderWrapper"] {{
+            background: var(--pss-mist) !important;
+            border: 1px solid rgba(0,0,0,.14) !important;
+            box-shadow: none !important;
+        }}
+
+        div[data-testid="stVerticalBlockBorderWrapper"] > div {{
+            background: var(--pss-mist) !important;
+        }}
+
+        .stRadio > label,
+        .stTextInput > label,
+        .stTextArea > label,
+        .stCheckbox > label {{
+            color: var(--pss-black) !important;
+            font-weight: 800 !important;
+        }}
+
+        div[role="radiogroup"] label p,
+        .stCheckbox label p {{
+            color: var(--pss-black) !important;
+        }}
+
+        .stTextInput input,
+        .stTextArea textarea {{
+            background: #ffffff !important;
+            color: var(--pss-black) !important;
+            border-radius: 8px !important;
+            border: 1px solid rgba(0,0,0,.24) !important;
+        }}
+
+        .stTextInput input:focus,
+        .stTextArea textarea:focus {{
+            border-color: var(--pss-terracotta) !important;
+            box-shadow: 0 0 0 1px var(--pss-terracotta) !important;
+        }}
+
         .pss-section-header {{
             background: var(--pss-graphite);
             color: var(--pss-mist);
             border-radius: 12px 12px 0 0;
-            padding: 13px 18px;
+            padding: 14px 20px;
             margin-top: 24px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 16px;
-            font-family: Arial, sans-serif;
             box-shadow: 0 10px 22px rgba(0,0,0,.11);
         }}
+
         .pss-section-header .name {{
-            color: var(--pss-mist);
+            color: var(--pss-mist) !important;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            font-size: .82rem;
+            letter-spacing: .17em;
+            font-size: .76rem;
             font-weight: 800;
         }}
+
         .pss-section-header .count {{
-            color: var(--pss-sand);
-            font-size: .78rem;
+            color: var(--pss-sand) !important;
+            font-size: .9rem;
             white-space: nowrap;
-            font-weight: 700;
+            font-weight: 900;
         }}
-        .pss-question-heading {{ margin-bottom: 10px; }}
-        .pss-question-meta {{ display: flex; gap: 10px; align-items: center; margin-bottom: 6px; }}
+
+        .pss-question-heading {{
+            margin-bottom: 10px;
+        }}
+
+        .pss-question-meta {{
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }}
+
         .pss-question-num {{
             background: var(--pss-graphite);
-            color: var(--pss-mist);
-            width: 28px;
-            height: 28px;
+            color: var(--pss-mist) !important;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-family: Arial, sans-serif;
-            font-size: .76rem;
-            font-weight: 800;
+            font-size: .78rem;
+            font-weight: 900;
         }}
+
         .pss-question-req {{
-            color: var(--pss-sand);
+            color: var(--pss-sand) !important;
             background: var(--pss-graphite);
-            padding: 5px 9px;
+            padding: 6px 10px;
             border-radius: 999px;
-            font-family: Arial, sans-serif;
             text-transform: uppercase;
-            letter-spacing: .08em;
-            font-size: .72rem;
+            letter-spacing: .09em;
+            font-size: .68rem;
             font-weight: 800;
         }}
-        .pss-question-text {{ color: var(--pss-black); font-size: 1rem; line-height: 1.5; margin: 0; }}
-        div[data-testid="stVerticalBlockBorderWrapper"] {{
-            background: var(--pss-mist) !important;
-            border: 1px solid rgba(0,0,0,.12) !important;
-            border-radius: 0 !important;
-            box-shadow: none !important;
-        }}
-        div[data-testid="stVerticalBlockBorderWrapper"]:has(.pss-question-heading) {{
-            border-radius: 0 !important;
-            margin-top: 0 !important;
-            border-top: 0 !important;
-        }}
-        .stRadio > label, .stTextInput > label, .stTextArea > label, .stCheckbox > label {{
+
+        .pss-question-text {{
             color: var(--pss-black) !important;
-            font-weight: 700 !important;
+            font-size: 1.02rem;
+            line-height: 1.5;
+            margin: 0;
         }}
-        div[role="radiogroup"] label p, .stCheckbox label p {{ color: var(--pss-black) !important; }}
-        .stTextInput input, .stTextArea textarea {{
-            background: #fff !important;
-            color: var(--pss-black) !important;
-            border-radius: 8px !important;
-            border: 1px solid rgba(0,0,0,.20) !important;
-        }}
-        .stTextInput input:focus, .stTextArea textarea:focus {{
-            border-color: var(--pss-green) !important;
-            box-shadow: 0 0 0 1px var(--pss-green) !important;
-        }}
+
         .pss-progress {{
-            background: var(--pss-mist);
+            background: var(--pss-mist) !important;
             border-radius: 12px;
             padding: 13px 16px;
             margin: 18px 0;
             border: 1px solid rgba(0,0,0,.10);
-            font-family: Arial, sans-serif;
             display: flex;
             justify-content: space-between;
             align-items: center;
             gap: 12px;
         }}
-        .pss-progress span {{ color: var(--pss-black); font-weight: 800; }}
-        div.stButton > button, div.stDownloadButton > button {{
+
+        .pss-progress span {{
+            color: var(--pss-black) !important;
+            font-weight: 900;
+        }}
+
+        div.stButton > button,
+        div.stDownloadButton > button {{
             border-radius: 8px !important;
-            border: 1px solid var(--pss-green) !important;
-            background: var(--pss-green) !important;
+            border: 1px solid var(--pss-terracotta) !important;
+            background: var(--pss-terracotta) !important;
             color: var(--pss-mist) !important;
-            font-family: Arial, sans-serif !important;
-            font-weight: 800 !important;
+            font-weight: 900 !important;
             letter-spacing: .08em !important;
             text-transform: uppercase !important;
-            padding: .72rem 1rem !important;
+            padding: .74rem 1rem !important;
         }}
-        div.stButton > button:hover, div.stDownloadButton > button:hover {{
-            filter: brightness(1.08);
+
+        div.stButton > button:hover,
+        div.stDownloadButton > button:hover {{
+            filter: brightness(1.06);
             color: var(--pss-mist) !important;
-            border-color: var(--pss-green) !important;
+            border-color: var(--pss-terracotta) !important;
         }}
+
         .pss-result {{
-            background: var(--pss-mist);
+            background: var(--pss-mist) !important;
             border: 2px solid var(--pss-green);
             border-radius: 12px;
-            padding: 24px;
-            margin: 20px 0 18px 0;
+            padding: 28px 24px 30px 24px;
+            margin: 24px 0 18px 0;
+            text-align: center;
             box-shadow: 0 14px 32px rgba(0,0,0,.10);
         }}
-        .pss-result-title {{
-            color: var(--pss-black);
-            font-family: Arial, sans-serif;
+
+        .pss-result-kicker {{
+            color: var(--pss-black) !important;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: .22em;
+            font-weight: 800;
+            font-size: .72rem;
+            margin-bottom: 12px;
+        }}
+
+        .pss-result-points {{
+            color: var(--pss-green) !important;
+            font-family: Georgia, "Times New Roman", serif !important;
+            font-size: clamp(3.2rem, 7vw, 5rem);
             font-weight: 900;
-            font-size: .85rem;
+            line-height: 1;
+            margin: 0;
+        }}
+
+        .pss-result-max {{
+            color: rgba(0,0,0,.58) !important;
+            font-size: 1.05rem;
+            margin-top: 6px;
+        }}
+
+        .pss-result-bar {{
+            width: min(540px, 80%);
+            height: 12px;
+            border-radius: 999px;
+            background: rgba(0,0,0,.07);
+            margin: 22px auto 20px auto;
+            overflow: hidden;
+        }}
+
+        .pss-result-bar-fill {{
+            height: 100%;
+            width: var(--value);
+            border-radius: 999px;
+            background: var(--status-color);
+        }}
+
+        .pss-status-pill {{
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 108px;
+            padding: 9px 24px;
+            border-radius: 999px;
+            border: 1px solid color-mix(in srgb, var(--status-color) 40%, #ffffff);
+            background: color-mix(in srgb, var(--status-color) 12%, #ffffff);
+            color: var(--status-color) !important;
+            font-size: .72rem;
+            font-weight: 800;
+            letter-spacing: .10em;
+            text-transform: uppercase;
             margin-bottom: 16px;
         }}
-        .pss-result-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid rgba(0,0,0,.18); }}
-        .pss-result-row {{ display: contents; }}
-        .pss-result-label {{
-            padding: 13px 14px;
-            border-bottom: 1px solid rgba(0,0,0,.14);
-            background: #fff;
+
+        .pss-result-copy {{
+            max-width: 650px;
+            margin: 0 auto;
+            color: var(--pss-black) !important;
+            font-size: 1rem;
+            line-height: 1.58;
+        }}
+
+        .pss-result-copy strong {{
+            color: var(--pss-black) !important;
             font-weight: 900;
-            color: var(--pss-black);
         }}
-        .pss-result-value {{
-            padding: 13px 14px;
-            border-bottom: 1px solid rgba(0,0,0,.14);
-            background: rgba(210,195,160,.34);
-            color: var(--pss-black);
-            font-weight: 800;
+
+        .pss-cert-id {{
+            margin-top: 16px;
+            color: rgba(0,0,0,.58) !important;
+            font-size: .86rem;
         }}
-        .pss-result-grid .pss-result-row:last-child .pss-result-label,
-        .pss-result-grid .pss-result-row:last-child .pss-result-value {{ border-bottom: none; }}
-        .pss-footer {{ text-align: center; margin-top: 30px; border-radius: 0; }}
-        .pss-footer .brand {{ color: var(--pss-mist); font-size: 1rem; font-weight: 900; letter-spacing: 2px; }}
-        .pss-footer .info {{ color: var(--pss-mist); font-family: Arial, sans-serif; font-size: .82rem; margin-top: 8px; }}
-        .pss-footer .muted {{ color: var(--pss-sand); font-family: Arial, sans-serif; font-size: .78rem; margin-top: 7px; }}
-        .small-note {{ color: rgba(0,0,0,.62); font-size: .88rem; font-family: Arial, sans-serif; }}
-        hr {{ border-color: rgba(0,0,0,.12) !important; }}
+
+        .pss-footer-bleed {{
+            width: 100vw;
+            margin-left: calc(50% - 50vw);
+            margin-right: calc(50% - 50vw);
+            margin-top: 42px;
+            background: var(--pss-graphite);
+        }}
+
+        .pss-footer-inner {{
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 30px 24px;
+            text-align: center;
+        }}
+
+        .pss-footer-inner .brand {{
+            color: var(--pss-mist) !important;
+            font-weight: 900;
+            letter-spacing: .14em;
+        }}
+
+        .pss-footer-inner .info {{
+            color: var(--pss-mist) !important;
+            font-size: .88rem;
+            margin-top: 8px;
+        }}
+
+        .pss-footer-inner .muted {{
+            color: var(--pss-sand) !important;
+            font-size: .82rem;
+            margin-top: 7px;
+        }}
+
+        .small-note {{
+            color: rgba(0,0,0,.68) !important;
+            font-size: .9rem;
+        }}
+
+        hr {{
+            border-color: rgba(0,0,0,.12) !important;
+        }}
 
         @media (max-width: 820px) {{
-            .pss-header {{ flex-direction: column; align-items: flex-start; }}
-            .pss-brand-lockup {{ min-width: 0; width: 100%; }}
-            .pss-logo-wordmark {{ max-width: calc(100vw - 170px); height: 34px; }}
-            .pss-logo-symbol {{ height: 44px; }}
-            .pss-hero-copy {{ text-align: left; }}
-            .pss-result-grid {{ grid-template-columns: 1fr; }}
-            .pss-result-label {{ border-bottom: 0; }}
-            .pss-result-value {{ border-bottom: 1px solid rgba(0,0,0,.14); }}
+            .pss-header-inner {{
+                flex-direction: column;
+                align-items: flex-start;
+                min-height: auto;
+                padding: 34px 24px;
+            }}
+
+            .pss-brand-lockup {{
+                min-width: 0;
+                width: 100%;
+            }}
+
+            .pss-logo-symbol {{
+                height: 42px;
+            }}
+
+            .pss-logo-wordmark {{
+                max-width: calc(100vw - 130px);
+                height: 42px;
+            }}
+
+            .pss-hero-copy {{
+                text-align: left;
+            }}
+
+            .pss-company-card {{
+                grid-template-columns: 1fr;
+            }}
         }}
         </style>
         """,
@@ -380,8 +605,7 @@ def get_bq_client() -> bigquery.Client | None:
     try:
         credentials = service_account.Credentials.from_service_account_info(svc)
         return bigquery.Client(credentials=credentials, project=bq_conf["project_id"])
-    except Exception as exc:
-        st.error(f"Não foi possível autenticar no BigQuery: {exc}")
+    except Exception:
         return None
 
 
@@ -414,27 +638,27 @@ def save_start_record(participant: dict[str, str], start_id: str, created_at: da
     client = get_bq_client()
     if client is None:
         save_local_json(".local_starts", f"{start_id}.json", row)
-        return False, "Sem secrets do BigQuery. Pré-cadastro salvo localmente para desenvolvimento."
+        return False, "local_backup"
     errors = client.insert_rows_json(table_id("inicios"), [row])
     if errors:
         save_local_json(".local_starts", f"{start_id}.json", row)
-        return False, f"Não consegui salvar o pré-cadastro no BigQuery. Backup local criado. Detalhes: {errors}"
-    return True, "Pré-cadastro salvo no BigQuery."
+        return False, "remote_error"
+    return True, "ok"
 
 
 def save_to_bigquery(submission: dict[str, Any], answers: list[dict[str, Any]]) -> tuple[bool, str]:
     client = get_bq_client()
     if client is None:
         save_local_json(".local_submissions", f"{submission['submission_id']}.json", {"submission": submission, "answers": answers})
-        return False, "Sem secrets do BigQuery. Salvei uma cópia local de desenvolvimento."
+        return False, "local_backup"
 
     errors_sub = client.insert_rows_json(table_id("submissoes"), [submission])
     errors_ans = client.insert_rows_json(table_id("respostas"), answers)
 
     if errors_sub or errors_ans:
         save_local_json(".local_submissions", f"{submission['submission_id']}.json", {"submission": submission, "answers": answers})
-        return False, f"Erro ao salvar no BigQuery. Backup local criado. Detalhes: {errors_sub or errors_ans}"
-    return True, "Respostas salvas no BigQuery."
+        return False, "remote_error"
+    return True, "ok"
 
 
 def calculate(answers: list[dict[str, Any]]) -> Diagnosis:
@@ -447,13 +671,14 @@ def calculate(answers: list[dict[str, Any]]) -> Diagnosis:
         pontos += score
         maximo += 5.0
 
-    percentual = round((pontos / maximo * 100), 1) if maximo else 0.0
+    percentual = round((pontos / maximo * 100), 0) if maximo else 0.0
     if percentual >= 71:
         return Diagnosis(
             pontos=pontos,
             maximo=maximo,
             percentual=percentual,
             status="ADEQUADO",
+            status_label="Adequado",
             descricao="Bom nível de conformidade. Mantenha evidências, atualizações periódicas e monitoramento dos indicadores.",
             pacote="Manutenção e Monitoramento NR-1",
             cor=BRAND["success"],
@@ -464,6 +689,7 @@ def calculate(answers: list[dict[str, Any]]) -> Diagnosis:
             maximo=maximo,
             percentual=percentual,
             status="EM ADEQUAÇÃO",
+            status_label="Em adequação",
             descricao="Há lacunas relevantes. Priorize as ações pendentes, formalize evidências e defina responsáveis e prazos.",
             pacote="Pacote de Adequação NR-1",
             cor=BRAND["terracotta"],
@@ -473,6 +699,7 @@ def calculate(answers: list[dict[str, Any]]) -> Diagnosis:
         maximo=maximo,
         percentual=percentual,
         status="CRÍTICO",
+        status_label="Crítico",
         descricao="Alto risco de autuação. Recomenda-se ação imediata, diagnóstico completo e plano de adequação acompanhado.",
         pacote="Diagnóstico Completo + Plano de Ação Prioritário",
         cor=BRAND["danger"],
@@ -516,12 +743,10 @@ def make_certificate_pdf(nome: str, certificado_id: str, created_at_br: str) -> 
     c.setFont("Helvetica", 8)
     c.drawRightString(width - 1.5 * cm, height - 2.15 * cm, "Workshop NR-1 | Gestão de Riscos Psicossociais")
 
-    # Marca d'água circular
     c.setFillColor(colors.Color(0.35, 0.36, 0.40, alpha=0.08))
     c.circle(width - 5.0 * cm, height - 9.8 * cm, 3.5 * cm, fill=1, stroke=0)
     c.circle(width - 2.25 * cm, height - 9.8 * cm, 3.5 * cm, fill=1, stroke=0)
 
-    # Moldura
     c.setStrokeColor(graphite)
     c.setLineWidth(1.4)
     c.rect(1.1 * cm, 1.1 * cm, width - 2.2 * cm, height - 4.85 * cm, fill=0, stroke=1)
@@ -628,7 +853,7 @@ def make_excel(participant: dict[str, str], answers: list[dict[str, Any]], summa
         ("Telefone", participant.get("telefone", "")),
         ("Pontuação Obtida", summary["pontuacao"]),
         ("Pontuação máxima", summary["pontuacao_maxima"]),
-        ("Percentual de Conformidade", f"{summary['percentual']}%"),
+        ("Percentual de Conformidade", f"{summary['percentual']:.0f}%"),
         ("Status", summary["status"]),
         ("Pacote Recomendado", summary["pacote_recomendado"]),
     ]
@@ -708,14 +933,16 @@ def render_header() -> None:
     wordmark_html = f'<img class="pss-logo-wordmark" src="data:image/png;base64,{wordmark}" alt="Perroni Sanvicente & Schirmer">' if wordmark else '<div style="color:#EDEDEC;font-weight:900;letter-spacing:1px;">PERRONI SANVICENTE & SCHIRMER</div>'
     st.markdown(
         f"""
-        <header class="pss-header">
-            <div class="pss-brand-lockup">
-                {symbol_html}
-                {wordmark_html}
-            </div>
-            <div class="pss-hero-copy">
-                <h1>Checklist de Adequação a NR-1</h1>
-                <p>Diagnóstico digital para mapeamento de conformidade em riscos psicossociais, GRO/PGR, prevenção, documentação e política interna.</p>
+        <header class="pss-header-bleed">
+            <div class="pss-header-inner">
+                <div class="pss-brand-lockup">
+                    {symbol_html}
+                    {wordmark_html}
+                </div>
+                <div class="pss-hero-copy">
+                    <div class="pss-title">Checklist de Adequação a NR-1</div>
+                    <p>Diagnóstico digital para mapeamento de conformidade em riscos psicossociais, GRO/PGR, prevenção, documentação e política interna.</p>
+                </div>
             </div>
         </header>
         """,
@@ -727,7 +954,7 @@ def render_intro() -> None:
     st.markdown(
         """
         <div class="pss-card pss-intro">
-            <p><strong>Como preencher:</strong> para cada requisito, selecione uma das quatro opções — <strong>Sim - Conforme</strong> (5 pts), <strong>Em andamento</strong> (2,5 pts), <strong>Não - Inconformidade</strong> (0 pts) ou <strong>N/A</strong> (não se aplica). Ao final, clique em <strong>Calcular e Enviar Resultados</strong>.</p>
+            <p><strong>Como preencher:</strong> para cada requisito, selecione uma das quatro opções — <strong>Sim - Conforme</strong> (5 pontos), <strong>Em andamento</strong> (2,5 pontos), <strong>Não - Inconformidade</strong> (0 pontos) ou <strong>N/A</strong> (não se aplica). Ao final, clique em <strong>Calcular e Enviar Resultados</strong>.</p>
             <p style="margin-bottom:0"><strong>Responda, gere seu score, Matriz de Ações e emita o seu certificado de participação no Workshop!</strong></p>
             <p class="small-note" style="margin-bottom:0;margin-top:10px">A observação é opcional, mas recomendamos justificar quando a resposta for N/A.</p>
         </div>
@@ -741,7 +968,6 @@ def init_state() -> None:
         "identificado": False,
         "participant": {},
         "start_id": "",
-        "start_message": "",
         "result_payload": None,
     }
     for k, v in defaults.items():
@@ -751,71 +977,76 @@ def init_state() -> None:
 
 def render_identification_gate() -> bool:
     if st.session_state.identificado:
-        participant = st.session_state.participant
-        st.markdown(
-            f"""
-            <div class="pss-unlocked">
-                Questionário liberado para <strong>{escape(participant.get('nome', ''))}</strong> — <strong>{escape(participant.get('empresa', ''))}</strong>.
-                {escape(st.session_state.start_message)}
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-        c1, c2 = st.columns([1, 4])
-        with c1:
-            if st.button("Editar identificação"):
-                st.session_state.identificado = False
-                st.session_state.result_payload = None
-                st.rerun()
         return True
 
-    st.markdown('<div class="pss-card-title">Identificação da Empresa</div>', unsafe_allow_html=True)
-    with st.container(border=True):
-        with st.form("identificacao_form", clear_on_submit=False):
-            c1, c2 = st.columns(2)
-            with c1:
-                nome = st.text_input("Nome completo *", value=st.session_state.participant.get("nome", ""))
-                email = st.text_input("E-mail *", value=st.session_state.participant.get("email", ""))
-                cargo = st.text_input("Cargo", value=st.session_state.participant.get("cargo", ""))
-            with c2:
-                empresa = st.text_input("Empresa *", value=st.session_state.participant.get("empresa", ""))
-                cnpj = st.text_input("CNPJ", value=st.session_state.participant.get("cnpj", ""))
-                telefone = st.text_input("Telefone", value=st.session_state.participant.get("telefone", ""))
+    st.markdown('<div class="pss-card"><div class="pss-card-title">Identificação da Empresa</div>', unsafe_allow_html=True)
+    with st.form("identificacao_form", clear_on_submit=False):
+        c1, c2 = st.columns(2)
+        with c1:
+            nome = st.text_input("Nome completo *", value=st.session_state.participant.get("nome", ""))
+            email = st.text_input("E-mail *", value=st.session_state.participant.get("email", ""))
+            cargo = st.text_input("Cargo", value=st.session_state.participant.get("cargo", ""))
+        with c2:
+            empresa = st.text_input("Empresa *", value=st.session_state.participant.get("empresa", ""))
+            cnpj = st.text_input("CNPJ", value=st.session_state.participant.get("cnpj", ""))
+            telefone = st.text_input("Telefone", value=st.session_state.participant.get("telefone", ""))
 
-            aceite = st.checkbox(
-                "Declaro estar ciente de que meus dados e respostas serão usados para registro de participação, emissão do certificado e geração do diagnóstico NR-1.",
-                value=False,
-            )
-            start = st.form_submit_button("Salvar dados e iniciar questionário")
+        aceite = st.checkbox(
+            "Declaro estar ciente de que meus dados e respostas serão usados para registro de participação, emissão do certificado e geração do diagnóstico NR-1.",
+            value=False,
+        )
+        start = st.form_submit_button("Salvar dados e iniciar questionário")
+    st.markdown("</div>", unsafe_allow_html=True)
 
-        if start:
-            participant = {
-                "nome": nome.strip(),
-                "email": email.strip(),
-                "empresa": empresa.strip(),
-                "cnpj": cnpj.strip(),
-                "cargo": cargo.strip(),
-                "telefone": telefone.strip(),
-            }
-            missing = [label for label, value in {"Nome completo": nome, "E-mail": email, "Empresa": empresa}.items() if not value.strip()]
-            if missing:
-                st.error("Preencha os campos obrigatórios: " + ", ".join(missing))
-                return False
-            if not aceite:
-                st.error("É necessário marcar o aceite de processamento de dados para liberar o questionário.")
-                return False
-            start_id = "START-" + uuid.uuid4().hex[:10].upper()
-            now_utc = datetime.now(timezone.utc)
-            now_br = datetime.now(TZ_BR)
-            ok, msg = save_start_record(participant, start_id, now_utc, now_br.strftime("%d/%m/%Y %H:%M:%S"))
-            st.session_state.identificado = True
-            st.session_state.participant = participant
-            st.session_state.start_id = start_id
-            st.session_state.start_message = msg if ok else msg
-            st.rerun()
+    if start:
+        participant = {
+            "nome": nome.strip(),
+            "email": email.strip(),
+            "empresa": empresa.strip(),
+            "cnpj": cnpj.strip(),
+            "cargo": cargo.strip(),
+            "telefone": telefone.strip(),
+        }
+        missing = [label for label, value in {"Nome completo": nome, "E-mail": email, "Empresa": empresa}.items() if not value.strip()]
+        if missing:
+            st.error("Preencha os campos obrigatórios: " + ", ".join(missing))
+            return False
+        if not aceite:
+            st.error("É necessário marcar o aceite de processamento de dados para liberar o questionário.")
+            return False
+        start_id = "START-" + uuid.uuid4().hex[:10].upper()
+        now_utc = datetime.now(timezone.utc)
+        now_br = datetime.now(TZ_BR)
+        save_start_record(participant, start_id, now_utc, now_br.strftime("%d/%m/%Y %H:%M:%S"))
+        st.session_state.identificado = True
+        st.session_state.participant = participant
+        st.session_state.start_id = start_id
+        st.rerun()
 
     st.info("O questionário será exibido após o preenchimento da identificação e aceite de processamento de dados.")
     return False
+
+
+def render_company_summary(participant: dict[str, str]) -> None:
+    def item(label: str, value: str) -> str:
+        return f'<div class="pss-company-item"><span class="label">{escape(label)}</span><span class="value">{escape(value or "-")}</span></div>'
+
+    st.markdown(
+        f"""
+        <div class="pss-card">
+            <div class="pss-card-title">Identificação da Empresa</div>
+            <div class="pss-company-card">
+                {item("Nome", participant.get("nome", ""))}
+                {item("E-mail", participant.get("email", ""))}
+                {item("Empresa", participant.get("empresa", ""))}
+                {item("CNPJ", participant.get("cnpj", ""))}
+                {item("Cargo", participant.get("cargo", ""))}
+                {item("Telefone", participant.get("telefone", ""))}
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def progress_html(respondidas: int, total: int) -> None:
@@ -851,7 +1082,7 @@ def render_questions(questions: list[Question]) -> tuple[dict[int, str | None], 
             st.markdown(
                 f"""
                 <div class="pss-section-header">
-                    <span class="name">{q.area}</span>
+                    <span class="name">{escape(q.area)}</span>
                     <span class="count">Itens {start} a {end}</span>
                 </div>
                 """,
@@ -863,9 +1094,9 @@ def render_questions(questions: list[Question]) -> tuple[dict[int, str | None], 
                 <div class="pss-question-heading">
                     <div class="pss-question-meta">
                         <span class="pss-question-num">{q.numero}</span>
-                        <span class="pss-question-req">{q.requisito}</span>
+                        <span class="pss-question-req">{escape(q.requisito)}</span>
                     </div>
-                    <p class="pss-question-text">{q.pergunta}</p>
+                    <p class="pss-question-text">{escape(q.pergunta)}</p>
                 </div>
                 """,
                 unsafe_allow_html=True,
@@ -916,22 +1147,31 @@ def build_answers(questions: list[Question], participant: dict[str, str], respon
 
 def render_result(payload: dict[str, Any]) -> None:
     diagnosis: Diagnosis = payload["diagnosis"]
+    pct = int(diagnosis.percentual)
     st.markdown(
         f"""
-        <div class="pss-result">
-            <div class="pss-result-title">Resultado do Diagnóstico</div>
-            <div class="pss-result-grid">
-                <div class="pss-result-row"><div class="pss-result-label">Pontuação Obtida</div><div class="pss-result-value">{diagnosis.pontos:g} / {diagnosis.maximo:g} pontos</div></div>
-                <div class="pss-result-row"><div class="pss-result-label">Percentual de Conformidade</div><div class="pss-result-value">{diagnosis.percentual:.1f}%</div></div>
-                <div class="pss-result-row"><div class="pss-result-label">Status</div><div class="pss-result-value">{diagnosis.status}</div></div>
-                <div class="pss-result-row"><div class="pss-result-label">Pacote Recomendado</div><div class="pss-result-value">{diagnosis.pacote}</div></div>
+        <div class="pss-result" style="--status-color:{diagnosis.cor};">
+            <div class="pss-result-kicker">Resultado do Diagnóstico</div>
+            <div class="pss-result-points">{diagnosis.pontos:g}</div>
+            <div class="pss-result-max">/ {diagnosis.maximo:g} pontos</div>
+            <div class="pss-result-bar">
+                <div class="pss-result-bar-fill" style="--value:{pct}%;"></div>
             </div>
-            <p style="margin-top:14px;margin-bottom:0;color:#000000">{diagnosis.descricao}</p>
-            <p class="small-note" style="margin-top:10px;margin-bottom:0">ID do certificado: {payload['certificado_id']}</p>
+            <div class="pss-status-pill">{escape(diagnosis.status_label)}</div>
+            <div class="pss-result-copy">
+                <p><strong>Percentual de Conformidade:</strong> {pct}%</p>
+                <p><strong>Pacote Recomendado:</strong> {escape(diagnosis.pacote)}</p>
+                <p>{escape(diagnosis.descricao)}</p>
+            </div>
+            <div class="pss-cert-id">ID do certificado: {escape(payload["certificado_id"])}</div>
         </div>
         """,
         unsafe_allow_html=True,
     )
+
+    if not payload.get("save_ok", True):
+        st.warning("Não foi possível confirmar o registro remoto. Os arquivos foram gerados normalmente.")
+
     d1, d2 = st.columns(2)
     with d1:
         st.download_button(
@@ -948,21 +1188,31 @@ def render_result(payload: dict[str, Any]) -> None:
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
 
-    with st.expander("Prévia da Matriz de Ações"):
-        st.dataframe(payload["preview_df"], use_container_width=True, hide_index=True)
-
 
 def footer() -> None:
     st.markdown(
         """
-        <footer class="pss-footer">
-            <div class="brand">PS&amp;S Advogados</div>
-            <div class="info">carolina@pssadv.com.br &nbsp;|&nbsp; www.pssadv.com.br</div>
-            <div class="muted">Documento de uso confidencial — NR-1 Compliance · Portaria MTE n. 1.419/2024</div>
+        <footer class="pss-footer-bleed">
+            <div class="pss-footer-inner">
+                <div class="brand">PS&amp;S Advogados</div>
+                <div class="info">carolina@pssadv.com.br &nbsp;|&nbsp; www.pssadv.com.br</div>
+                <div class="muted">Documento de uso confidencial — NR-1 Compliance · Portaria MTE n. 1.419/2024</div>
+            </div>
         </footer>
         """,
         unsafe_allow_html=True,
     )
+
+
+def reset_state() -> None:
+    for key in list(st.session_state.keys()):
+        if key.startswith("q_") or key.startswith("obs_"):
+            del st.session_state[key]
+    st.session_state.identificado = False
+    st.session_state.participant = {}
+    st.session_state.start_id = ""
+    st.session_state.result_payload = None
+    st.rerun()
 
 
 def main() -> None:
@@ -974,10 +1224,23 @@ def main() -> None:
     init_state()
     css()
     render_header()
+
+    st.markdown('<main class="pss-content">', unsafe_allow_html=True)
+
+    if st.session_state.result_payload:
+        render_company_summary(st.session_state.participant)
+        render_result(st.session_state.result_payload)
+        if st.button("Novo preenchimento", use_container_width=True):
+            reset_state()
+        st.markdown("</main>", unsafe_allow_html=True)
+        footer()
+        return
+
     render_intro()
 
     questions = load_questions()
     if not render_identification_gate():
+        st.markdown("</main>", unsafe_allow_html=True)
         footer()
         return
 
@@ -991,16 +1254,9 @@ def main() -> None:
         submit = st.button("Calcular e Enviar Resultados", type="primary", use_container_width=True)
     with c2:
         reset = st.button("Recomeçar", use_container_width=True)
+
     if reset:
-        for key in list(st.session_state.keys()):
-            if key.startswith("q_") or key.startswith("obs_"):
-                del st.session_state[key]
-        st.session_state.identificado = False
-        st.session_state.participant = {}
-        st.session_state.start_id = ""
-        st.session_state.start_message = ""
-        st.session_state.result_payload = None
-        st.rerun()
+        reset_state()
 
     if submit:
         missing_questions = [q.numero for q in questions if responses.get(q.numero) is None]
@@ -1039,39 +1295,22 @@ def main() -> None:
                 "user_agent": "streamlit",
                 "fonte": "app_streamlit",
             }
-            ok, msg = save_to_bigquery(submission, answers)
-            if ok:
-                st.success(msg)
-            else:
-                st.warning(msg)
+            save_ok, _ = save_to_bigquery(submission, answers)
 
             pdf_bytes = make_certificate_pdf(participant["nome"], certificado_id, created_at_br)
             excel_bytes = make_excel(participant, answers, summary)
             safe_empresa = participant["empresa"].strip().replace(" ", "_").replace("/", "-")
-            preview_df = pd.DataFrame([
-                {
-                    "Área": a["area"],
-                    "Nº": a["numero"],
-                    "Requisito": a["requisito"],
-                    "Resposta": a["resposta"],
-                    "Pontuação": a["pontuacao"],
-                    "Observação": a["observacao"],
-                    "Ação sugerida": a["acao_sugerida"],
-                }
-                for a in answers
-            ])
             st.session_state.result_payload = {
                 "diagnosis": diagnosis,
                 "certificado_id": certificado_id,
                 "pdf_bytes": pdf_bytes,
                 "excel_bytes": excel_bytes,
                 "excel_name": f"matriz_acoes_nr1_{safe_empresa}_{certificado_id}.xlsx",
-                "preview_df": preview_df,
+                "save_ok": save_ok,
             }
+            st.rerun()
 
-    if st.session_state.result_payload:
-        render_result(st.session_state.result_payload)
-
+    st.markdown("</main>", unsafe_allow_html=True)
     footer()
 
 
