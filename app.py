@@ -697,23 +697,23 @@ def render_result(payload: dict[str, Any]) -> None:
         st.warning("Não foi possível confirmar o registro remoto. Os arquivos foram gerados normalmente.")
 
 
-c0, c1, c2, c3 = st.columns([1.0, 1.25, 1.8, 1.0])
-with c1:
-    st.download_button(
-        "Download do certificado",
-        data=payload["pdf_bytes"],
-        file_name=f"certificado_{payload['certificado_id']}.pdf",
-        mime="application/pdf",
-        use_container_width=True,
-    )
-with c2:
-    st.download_button(
-        "Download dos resultados e Matriz de Ações",
-        data=payload["excel_bytes"],
-        file_name=payload["excel_name"],
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        use_container_width=True,
-    )
+    c0, c1, c2, c3 = st.columns([1.0, 1.25, 1.8, 1.0])
+    with c1:
+        st.download_button(
+            "Download do certificado",
+            data=payload["pdf_bytes"],
+            file_name=f"certificado_{payload['certificado_id']}.pdf",
+            mime="application/pdf",
+            use_container_width=True,
+        )
+    with c2:
+        st.download_button(
+            "Download dos resultados e Matriz de Ações",
+            data=payload["excel_bytes"],
+            file_name=payload["excel_name"],
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            use_container_width=True,
+        )
 
 
 def footer() -> None:
