@@ -1,0 +1,21 @@
+numero,area,requisito,pergunta
+1,GRO/PGR,PGR Formalizado,A empresa possui PGR documentado e vigente?
+2,GRO/PGR,PGR Atualizado,O PGR foi atualizado para incluir riscos psicossociais?
+3,GRO/PGR,Responsável Designado,Existe responsável formal pela gestão de riscos psicossociais?
+4,GRO/PGR,Inventário de Riscos,"O inventário contempla estresse, burnout, assédio, pressão de metas e demais fatores psicossociais?"
+5,GRO/PGR,Revisões Periódicas,O PGR prevê revisões periódicas com responsáveis definidos?
+6,Identificação,Mapeamento Formal,Foi realizado mapeamento formal de riscos psicossociais?
+7,Identificação,Escuta Ativa,"Existem mecanismos de escuta ativa, como pesquisa de clima, canal de ouvidoria ou entrevistas?"
+8,Identificação,Indicadores,"A empresa monitora absenteísmo, turnover, afastamentos e outros indicadores relacionados?"
+9,Identificação,Capacitação de Líderes,Lideranças foram capacitadas para identificar sinais de sofrimento psíquico?
+10,Prevenção,Treinamentos,A empresa realiza treinamentos formais sobre saúde mental e riscos psicossociais?
+11,Prevenção,Programa Burnout,Existe programa estruturado de prevenção ao burnout?
+12,Prevenção,Equilíbrio Digital,Há políticas de equilíbrio digital e direito à desconexão?
+13,Prevenção,Protocolo de Crise,Existem protocolos para crises psicológicas no trabalho?
+14,Documentação,Registro de Ações,Ações preventivas são formalmente documentadas?
+15,Documentação,Certificados,A empresa emite e arquiva certificados de participação em treinamentos?
+16,Documentação,Organização de Registros,Registros estão organizados e acessíveis para fiscalização?
+17,Documentação,Ata CIPA,Há atas da CIPA tratando especificamente de riscos psicossociais?
+18,Política Interna,Política Formalizada,Existe Política Interna de Saúde Mental formalmente aprovada?
+19,Política Interna,Canal de Apoio,Existe canal de suporte psicológico ou programa de assistência ao empregado?
+20,Política Interna,Comprometimento da Liderança,A alta liderança demonstra comprometimento formal com a saúde mental?

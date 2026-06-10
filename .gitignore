@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# Secrets
+.streamlit/secrets.toml
+.secrets/
+*.json
+
+# Local generated files
+.local_submissions/
+*.pdf
+*.xlsx
+
+# OS
+.DS_Store
+Thumbs.db
