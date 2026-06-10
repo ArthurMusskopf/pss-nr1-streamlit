@@ -531,6 +531,19 @@ def render_header() -> None:
     )
 
 
+def render_intro() -> None:
+    st.markdown(
+        """
+        <div class="pss-card pss-intro">
+            <p><strong>Como preencher:</strong> para cada requisito, selecione uma das quatro opções — <strong>Sim - Conforme</strong> (5 pontos), <strong>Em andamento</strong> (2,5 pontos), <strong>Não - Inconformidade</strong> (0 pontos) ou <strong>N/A</strong> (não se aplica). Ao final, clique em <strong>Calcular e Enviar Resultados</strong>.</p>
+            <p style="margin-bottom:0"><strong>Responda, gere seu score, Matriz de Ações e emita o seu certificado de participação no Workshop!</strong></p>
+            <p class="small-note" style="margin-bottom:0;margin-top:10px">A observação é opcional, mas recomendamos justificar quando a resposta for N/A.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def init_state() -> None:
     defaults = {
         "identificado": False,
