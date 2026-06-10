@@ -11,3 +11,13 @@
 .pss-brand-lockup{min-width:620px!important;gap:30px!important;}
 .pss-logo-symbol{height:118px!important;max-height:118px!important;}
 .pss-logo-wordmark{height:132px!important;max-height:132px!important;max-width:660px!important;}
+/* INLINE HEADER FIX */
+header[style*="background:#595C65"]{margin-top:-18px!important;width:100vw!important;}
+header[style*="background:#595C65"]>div{max-width:1180px!important;min-height:170px!important;padding:30px 40px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:56px!important;}
+header[style*="background:#595C65"]>div>div:first-child{flex:0 1 52%!important;display:flex!important;align-items:center!important;gap:22px!important;min-width:0!important;}
+header[style*="background:#595C65"]>div>div:nth-child(2){flex:0 0 42%!important;min-width:0!important;text-align:right!important;}
+header[style*="background:#595C65"] img[alt="Logo PS&S"]{width:54px!important;height:auto!important;max-width:54px!important;}
+header[style*="background:#595C65"] img[alt="Perroni Sanvicente & Schirmer"]{width:430px!important;max-width:430px!important;height:auto!important;}
+header[style*="background:#595C65"]>div>div:nth-child(2)>div{font-size:30px!important;line-height:1.08!important;margin-bottom:10px!important;}
+header[style*="background:#595C65"]>div>div:nth-child(2)>p{font-size:15px!important;line-height:1.38!important;}
+@media(max-width:900px){header[style*="background:#595C65"]>div{display:block!important;padding:28px 24px!important;}header[style*="background:#595C65"]>div>div:nth-child(2){text-align:left!important;margin-top:20px!important;}header[style*="background:#595C65"] img[alt="Perroni Sanvicente & Schirmer"]{width:360px!important;max-width:calc(100vw - 140px)!important;}}
